@@ -7,9 +7,10 @@ import com.lindar.wellrested.vo.WellRestedResponse
 import lindar.acolyte.util.UrlAcolyte
 import lindar.cheq.client.CheqAccessCredentials
 import mu.KotlinLogging
-import org.apache.http.HttpEntity
-import org.apache.http.client.entity.UrlEncodedFormEntity
-import org.apache.http.message.BasicNameValuePair
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity
+import org.apache.hc.core5.http.HttpEntity
+import org.apache.hc.core5.http.message.BasicNameValuePair
+import java.nio.charset.Charset
 
 abstract class AbstractResource(val accessCredentials: CheqAccessCredentials, private val defaultTimeout: Int) {
 
@@ -28,7 +29,7 @@ abstract class AbstractResource(val accessCredentials: CheqAccessCredentials, pr
     protected fun < S : Any> postAndGetRequest(resourcePath: String, objectToPost: Map<String, String>, clazz: Class<S>): Result<S> {
         val request = buildRequestFromResourcePath(resourcePath)
 
-        val httpEntity: HttpEntity = UrlEncodedFormEntity(objectToPost.map { BasicNameValuePair(it.key, it.value) }, "UTF-8")
+        val httpEntity: HttpEntity = UrlEncodedFormEntity(objectToPost.map { BasicNameValuePair(it.key, it.value) }, Charset.forName("UTF-8"))
         val response = request.post().httpEntity(httpEntity).submit()
         return if (validResponse(response)) {
             ResultBuilder.successful(response.fromJson().castTo(clazz))
