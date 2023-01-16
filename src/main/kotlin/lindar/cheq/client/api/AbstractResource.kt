@@ -26,21 +26,29 @@ abstract class AbstractResource(val accessCredentials: CheqAccessCredentials, pr
             .build()
     }
 
-    protected fun < S : Any> postAndGetRequest(resourcePath: String, objectToPost: Map<String, String>, clazz: Class<S>): Result<S> {
+    protected fun <S : Any> postAndGetRequest(resourcePath: String, objectToPost: Map<String, String>, clazz: Class<S>): Result<S> {
         val request = buildRequestFromResourcePath(resourcePath)
 
         val httpEntity: HttpEntity = UrlEncodedFormEntity(objectToPost.map { BasicNameValuePair(it.key, it.value) }, Charset.forName("UTF-8"))
         val response = request.post().httpEntity(httpEntity).submit()
-        return if (validResponse(response)) {
+        return if (response.isValid) {
             ResultBuilder.successful(response.fromJson().castTo(clazz))
         } else parseErrorResponse(response)
     }
 
-    private fun validResponse(response: WellRestedResponse): Boolean {
-        return response.statusCode < 300
-    }
-
     private fun <T> parseErrorResponse(response: WellRestedResponse): Result<T> {
+        if (response.isSocketTimeout) {
+            return ResultBuilder.failed<T>()
+                .msg("Socket timeout")
+                .code(response.statusCode.toString()).buildAndIgnoreData()
+        }
+
+        if (response.isConnectionTimeout) {
+            return ResultBuilder.failed<T>()
+                .msg("Connection timeout")
+                .code(response.statusCode.toString()).buildAndIgnoreData()
+        }
+
         return ResultBuilder.failed<T>()
             .msg(response.serverResponse)
             .code(response.statusCode.toString()).buildAndIgnoreData()
