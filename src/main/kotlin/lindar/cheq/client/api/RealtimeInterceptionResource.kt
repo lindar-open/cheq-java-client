@@ -4,9 +4,10 @@ import com.lindar.wellrested.vo.Result
 import lindar.cheq.client.CheqAccessCredentials
 import lindar.cheq.client.RealtimeInterceptionRequest
 import lindar.cheq.client.RealtimeInterceptionResponse
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
 
 
-class RealtimeInterceptionResource(accessCredentials: CheqAccessCredentials, defaultTimeout: Int) : AbstractResource(accessCredentials, defaultTimeout) {
+class RealtimeInterceptionResource(accessCredentials: CheqAccessCredentials, httpClient: CloseableHttpClient, defaultTimeout: Int) : AbstractResource(accessCredentials, httpClient, defaultTimeout) {
 
     fun create(request: RealtimeInterceptionRequest): Result<RealtimeInterceptionResponse> {
         val requestParams = mutableMapOf<String, String>()
