@@ -6,22 +6,19 @@ import com.lindar.wellrested.vo.ResultBuilder
 import com.lindar.wellrested.vo.WellRestedResponse
 import lindar.acolyte.util.UrlAcolyte
 import lindar.cheq.client.CheqAccessCredentials
-import mu.KotlinLogging
 import org.apache.hc.client5.http.entity.UrlEncodedFormEntity
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient
 import org.apache.hc.core5.http.HttpEntity
 import org.apache.hc.core5.http.message.BasicNameValuePair
 import java.nio.charset.Charset
 
-abstract class AbstractResource(val accessCredentials: CheqAccessCredentials, private val defaultTimeout: Int) {
-
-    companion object {
-        private val log = KotlinLogging.logger {}
-    }
+abstract class AbstractResource(val accessCredentials: CheqAccessCredentials, private val httpClient: CloseableHttpClient, private val defaultTimeout: Int) {
 
     private fun buildRequestFromResourcePath(resourcePath: String): WellRestedRequest {
         val url = UrlAcolyte.safeConcat(accessCredentials.apiUrl, resourcePath)
         return WellRestedRequest.builder()
             .url(url)
+            .customHttpClient(httpClient)
             .timeout(defaultTimeout)
             .build()
     }
